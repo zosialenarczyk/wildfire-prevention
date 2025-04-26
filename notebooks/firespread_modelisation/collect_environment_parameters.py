@@ -412,11 +412,11 @@ if __name__ == "__main__":
             binary_firemask_array = get_binary_fire_mask_array(LONGITUDE, LATITUDE,mosaic,user_input)
 
             plt.figure(figsize=(6, 6))
-            plt.imshow(binary_firemask_array, cmap='binary')  # ou 'binary' pour fond blanc et pixels noirs
+            plt.imshow(binary_firemask_array, cmap='grey')  # ou 'binary' pour fond blanc et pixels noirs
             plt.title("Binary Map")
             plt.axis('off')  # Cache les axes
             plt.colorbar(label="Class")
-            plt.savefig("binary_firemask.png", dpi=300)
+            plt.savefig("example/binary_firemask.png", dpi=300)
             plt.show()
 
             user_input2 = int(input("Are you satisfied with the result ? (True=1, False=0) "))
@@ -433,7 +433,7 @@ if __name__ == "__main__":
         assert all(arr.shape == (64, 64) for arr in arrays)
         stacked_array = np.stack(arrays, axis=-1)
         print("Final shape :", stacked_array.shape)  # (64, 64, 9)
-        np.save("array_extracted.npy", stacked_array)
+        np.save("example/array_extracted.npy", stacked_array)
         fig, axes = plt.subplots(3, 3, figsize=(10, 10))
         fig.suptitle("9 environmental parameters (64x64)")
 

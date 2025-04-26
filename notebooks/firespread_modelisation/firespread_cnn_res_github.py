@@ -79,7 +79,6 @@ def _parse_function(example_proto):
                 prev_fire_mask_input =normalized_feature
             inputs_list.append(normalized_feature)
     inputs = tf.concat(inputs_list, axis=-1)  # Shape of inputs: [64, 64, 9] 
-    print(inputs.shape)
     # The label (FireMask), is expanded to have a shape [64,64,1]
     
     label = tf.expand_dims(parsed_example['FireMask'], axis=-1)  # Shape of output: [64, 64, 1]
@@ -422,8 +421,8 @@ if __name__ == "__main__":
 
     if args.mode == "data_visualisation":
         # Plot 5 training examples
-        os.makedirs("experiments_plots_folder", exist_ok=True)
-        save_path = "./experiments_plots_folder/plot.png"
+        os.makedirs("example/experiments_plots_folder", exist_ok=True)
+        save_path = "./example/experiments_plots_folder/plot.png"
         plot_samples_from_dataset(train_dataset, 5,save_path)
 
     if args.mode == "train":
@@ -445,72 +444,31 @@ if __name__ == "__main__":
         precision = history.history.get('val_precision', [0])[-1]
         recall = history.history.get('val_recall', [0])[-1]
 
-        os.makedirs(f"{args.experiment_folder}_evaluation", exist_ok=True)
-        save_file_history =f"{args.experiment_folder}_evaluation/h_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.png"
+        os.makedirs(f"example/{args.experiment_folder}_evaluation", exist_ok=True)
+        save_file_history =f"example/{args.experiment_folder}_evaluation/h_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.png"
         plot_history(history,save_file_history)
 
-        os.makedirs(f"{args.experiment_folder}", exist_ok=True)
-        model.save(f"{args.experiment_folder}/saved_model_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.keras")
+        os.makedirs(f"example/{args.experiment_folder}", exist_ok=True)
+        model.save(f"example/{args.experiment_folder}/saved_model_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.keras")
 
  
-        results_file = f"{args.experiment_folder}_evaluation/metrics_results.txt"
+        results_file = f"example/{args.experiment_folder}_evaluation/metrics_results.txt"
 
         with open(results_file, "a") as f:  # "a" = append mode, add without erasing 
             f.write(f"AUC:{auc}, Val_loss:{val_loss}, Precision: {precision}, Recall: {recall}, Weight:{args.weight},Add:{args.text}, Epochs: {args.epochs}, Batch Size: {args.batch_size}, Learning Rate: {args.learning_rate},MinPixels:{args.min_pixel_fire}\n")
             f.flush() 
         print(f"IoU Score saved in {results_file}")
 
-        os.makedirs(f"{args.experiment_folder}_samples", exist_ok=True)
-        save_path = f"./{args.experiment_folder}_samples/plot_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.png"
+        os.makedirs(f"example/{args.experiment_folder}_samples", exist_ok=True)
+        save_path = f"./example/{args.experiment_folder}_samples/plot_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.png"
 
         features, labels = next(iter(test_dataset))
         show_inference(6, features, labels, lambda x: tf.where(model.predict(x) > 0.5, 1, 0)[:,:,:,0],save_path)  
      
-
-    if args.mode =="samples":
-        model = tf.keras.models.load_model(f"{args.experiment_folder}/saved_model_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}.keras")
-        os.makedirs("finetune_samples", exist_ok=True)
-
-        save_path = f"./finetune_samples/plot_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}.png"
-
-        features, labels = next(iter(test_dataset))
-        show_inference(6, features, labels, lambda x: tf.where(model.predict(x) > 0.5, 1, 0)[:,:,:,0],save_path)
-
-    if args.mode =="test_without_model":
-        print('a')
-        #test
-        print(validation_dataset.element_spec)
-        inputs,target = next(iter(train_dataset))
-        prev_mask =inputs[:, :, :, -1]
-        target = target[:, :, :, 0]
-
-        prev_mask = tf.reshape(prev_mask, [-1])  # Applatir pour obtenir un vecteur 1D
-        target = tf.reshape(target, [-1])  # Applatir pour obtenir un vecteur 1D
-
-
-        print(prev_mask.shape)
-        print(target.shape)
-        precision_metric =Precision()
-        recall_metric = Recall()
-        auc_metric =AUC()
-
-        precision_metric.update_state(target, prev_mask)
-        recall_metric.update_state(target, prev_mask)
-        auc_metric.update_state(target, prev_mask)
-
-        precision = precision_metric.result().numpy()
-        recall = recall_metric.result().numpy()
-        auc = auc_metric.result().numpy()
-
-        # Afficher les résultats
-        print(f"Precision: {precision}")
-        print(f"Recall: {recall}")
-        print(f"AUC: {auc}")
-
     if args.mode =="output" :
-        model = tf.keras.models.load_model(f"{args.experiment_folder}/saved_model_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.keras")
+        model = tf.keras.models.load_model(f"example/{args.experiment_folder}/saved_model_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.keras")
 
-        input_array_file = 'array_extracted.npy'
+        input_array_file = 'example/array_extracted.npy'
         input_array = np.load(input_array_file, allow_pickle=True)
 
         for i in range(8):
@@ -523,6 +481,12 @@ if __name__ == "__main__":
         binary_predictions = (predictions > 0.5).astype(np.uint8)
         output_image = binary_predictions[0]  # shape: (64, 64, 1)
         output_image_2d = output_image.squeeze()  # shape: (64, 64)
+
+        plt.imshow(output_image_2d, cmap='gray')
+        plt.title("Prediction")
+        plt.colorbar()
+        plt.savefig("example/output_prediction.png")
+        plt.show()
 
 
 
