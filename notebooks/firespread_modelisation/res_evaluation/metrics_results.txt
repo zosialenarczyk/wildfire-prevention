@@ -1,0 +1,1 @@
+AUC:0.8256465792655945, Val_loss:0.21950219571590424, Precision: 0.2465645670890808, Recall: 0.3080874979496002, Weight:3,Add:, Epochs: 15, Batch Size: 32, Learning Rate: 0.0001,MinPixels:15
