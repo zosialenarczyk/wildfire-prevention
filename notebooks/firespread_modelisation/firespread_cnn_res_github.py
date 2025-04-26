@@ -12,12 +12,16 @@ from tensorflow.keras.layers import (
     Conv2D, Conv2DTranspose, Input, BatchNormalization, UpSampling2D, 
     MaxPooling2D, Dropout, Add, Flatten, Dense, Reshape, ReLU, concatenate
 )
+from keras.saving import register_keras_serializable
 from tensorflow.keras.metrics import AUC, Precision, Recall, MeanIoU
 from tensorflow.keras.losses import BinaryFocalCrossentropy
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras import layers
+
+from typing import Callable, Text
+
 
 
 
@@ -313,7 +317,7 @@ if __name__ == "__main__":
         "--mode",
         type=str,
         default="train",
-        choices=["train", "samples", "eval","data_visualisation","test_without_model"],
+        choices=["train", "samples", "eval","data_visualisation","test_without_model","output"],
         help="what to do when running the script (default: %(default)s)",
     )
     parser.add_argument(
@@ -338,7 +342,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--min-pixel-fire",
         type=int,
-        default=20,
+        default=15,
         metavar="N",
         help="Minimum pixels in fire in PrevFireMask (default: %(default)s)",
     )
@@ -353,14 +357,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=64,
+        default=32,
         metavar="N",
         help="batch size for training (default: %(default)s)",
     )
     parser.add_argument(
         "--epochs",
         type=int,
-        default=2,
+        default=15,
         metavar="N",
         help="number of training epochs (default: %(default)s)",
     )
@@ -383,6 +387,7 @@ if __name__ == "__main__":
         default=3,
         help="weight class 1 (default: %(default)s)",
     )
+
 
     @register_keras_serializable()
     def weighted_binary_crossentropy(y_true, y_pred):
@@ -407,9 +412,9 @@ if __name__ == "__main__":
     OUTPUT_FEATURES = ['FireMask']
     TITLES = ['Elevation','Wind\ndirection','Wind\nvelocity','Min\ntemp','Max\ntemp','Humidity','Precip','Drought','Vegetation','Population\ndensity','Energy\nrelease\ncomponent','Previous\nfire\nmask','Fire\nmask']
 
-    train_file = './dataset_firespread/next_day_wildfire_spread_train*'
-    test_file = './dataset_firespread/next_day_wildfire_spread_test*'
-    validation_file = './dataset_firespread/next_day_wildfire_spread_eval*'
+    train_file = '../../data/training_dataset_firespread_model/next_day_wildfire_spread_train*'
+    test_file = '../../data/training_dataset_firespread_model/next_day_wildfire_spread_test*'
+    validation_file = '../../data/training_dataset_firespread_model/next_day_wildfire_spread_eval*'
 
     train_dataset = get_dataset(train_file, batch_size=args.batch_size)
     validation_dataset = get_dataset(validation_file, batch_size= args.batch_size)
@@ -497,17 +502,27 @@ if __name__ == "__main__":
         recall = recall_metric.result().numpy()
         auc = auc_metric.result().numpy()
 
-# Afficher les résultats
+        # Afficher les résultats
         print(f"Precision: {precision}")
         print(f"Recall: {recall}")
         print(f"AUC: {auc}")
 
-    if args.mode ="output" :
+    if args.mode =="output" :
+        model = tf.keras.models.load_model(f"{args.experiment_folder}/saved_model_{args.text}_{args.model}_{args.epochs}_{args.batch_size}_{args.learning_rate}_{args.min_pixel_fire}_{args.weight}.keras")
 
+        input_array_file = 'array_extracted.npy'
+        input_array = np.load(input_array_file, allow_pickle=True)
 
-        features, labels = next(iter(test_dataset))
-        show_inference(1, features, labels, lambda x: tf.where(model.predict(x) > 0.5, 1, 0)[:,:,:,0],save_path)
+        for i in range(8):
+            input_array[:, :, i] = (input_array[:, :, i] - np.mean(input_array[:, :, i])) / (np.std(input_array[:, :, i]) + 1e-6)
 
+        input_array_batch = np.expand_dims(input_array, axis=0)  # (1, 64, 64, 9)
+
+        
+        predictions = model.predict(input_array_batch)  # shape: (1, 64, 64, 1)
+        binary_predictions = (predictions > 0.5).astype(np.uint8)
+        output_image = binary_predictions[0]  # shape: (64, 64, 1)
+        output_image_2d = output_image.squeeze()  # shape: (64, 64)
 
 
 

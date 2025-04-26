@@ -1,4 +1,4 @@
-#python mon_script.py
+#python collect_environment_parameters.py
 
 
 import pandas as pd
@@ -9,7 +9,6 @@ import numpy as np
 import geopandas as gpd
 from shapely.geometry import Point
 import datetime
-from os.path import join, exists
 import xarray as xr
 import os
 import geemap
@@ -25,18 +24,21 @@ ROI = 32000
 LATITUDE = 39.8180108
 LONGITUDE = 27.3259523
 TRESHOLD =2000
-#Need at least 5 days 
+#Need at least 5 to 10 days 
+#Extend if it is not working
 STARTDATE = datetime(2017, 10, 13)
 ENDDATE = datetime(2017, 10, 25)
 
-#17
+
 def authenticate_earth_engine():
     """
     Authenticate Earth Engine API.
     """
     try:
+        print('Beginning of the program')
         ee.Authenticate()
         ee.Initialize()
+        print("Connection to Google Earth done")
     except Exception as e:
         print("Error initializing Earth Engine:", e)
         ee.Authenticate()
@@ -54,12 +56,7 @@ def get_population_array(longitude, latitude,roi):
                 .select('population_density') \
                 .clip(region)
 
-    
     array = geemap.ee_to_numpy(image, region=region, scale=1000)
-
-
-
-
     height, width, depth = array.shape
     start_x = (width - 64) // 2
     start_y = (height - 64) // 2
@@ -94,7 +91,6 @@ def get_vegetation_array(longitude, latitude,roi,startDate, endDate):
     )
 
     array = geemap.ee_to_numpy(image_resampled, region=region, scale=1000)
-
     height, width, depth = array.shape
     start_x = (width - 64) // 2
     start_y = (height - 64) // 2
@@ -135,7 +131,6 @@ def get_elevation_array(longitude, latitude,roi,startDate, endDate):
     return array
 
 #4-Wind direction
-
 def get_wind_direction_array(longitude, latitude,roi, startDate, endDate):
     """
     Get wind direction data from Earth Engine.
@@ -223,7 +218,6 @@ def get_precipitation_array(longitude, latitude,roi,startDate, endDate):
     return array_precipitation
 
 #7-Temperature Max
-
 def get_temperature_max_array(longitude, latitude,roi,startDate, endDate):
     """
     Get maximum temperature data from Earth Engine.
@@ -242,7 +236,7 @@ def get_temperature_max_array(longitude, latitude,roi,startDate, endDate):
     start_x = (width - 64) // 2
     start_y = (height - 64) // 2
     array_cropped = array[start_y:start_y + 64, start_x:start_x + 64]
-    array_smoothed = gaussian_filter(array_cropped, sigma=2)  # sigma définit le degré de flou
+    array_smoothed = gaussian_filter(array_cropped, sigma=2)  
     array_temperature = array_smoothed.squeeze()
     print('Max temperature array done')
     return array_temperature
@@ -418,10 +412,11 @@ if __name__ == "__main__":
             binary_firemask_array = get_binary_fire_mask_array(LONGITUDE, LATITUDE,mosaic,user_input)
 
             plt.figure(figsize=(6, 6))
-            plt.imshow(binary_firemask_array, cmap='gray')  # ou 'binary' pour fond blanc et pixels noirs
+            plt.imshow(binary_firemask_array, cmap='binary')  # ou 'binary' pour fond blanc et pixels noirs
             plt.title("Binary Map")
             plt.axis('off')  # Cache les axes
-            plt.colorbar(label="Class")  # Facultatif, utile si tu veux voir la légende
+            plt.colorbar(label="Class")
+            plt.savefig("binary_firemask.png", dpi=300)
             plt.show()
 
             user_input2 = int(input("Are you satisfied with the result ? (True=1, False=0) "))
@@ -437,7 +432,7 @@ if __name__ == "__main__":
 
         assert all(arr.shape == (64, 64) for arr in arrays)
         stacked_array = np.stack(arrays, axis=-1)
-        print("Fianl shape :", stacked_array.shape)  # (64, 64, 9)
+        print("Final shape :", stacked_array.shape)  # (64, 64, 9)
         np.save("array_extracted.npy", stacked_array)
         fig, axes = plt.subplots(3, 3, figsize=(10, 10))
         fig.suptitle("9 environmental parameters (64x64)")
@@ -454,5 +449,5 @@ if __name__ == "__main__":
         plt.show() 
 
     except ValueError:
-        print("Errorr : you have to enter a valid int.")
+        print("Error : you have to enter a valid int.")
     
