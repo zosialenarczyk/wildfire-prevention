@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from tqdm import tqdm
+from scipy.stats import rankdata
 
 import tensorflow as tf
 from tensorflow.keras import backend as K
@@ -22,7 +23,10 @@ from tensorflow.keras import layers
 
 from typing import Callable, Text
 
-
+'''This file contains the implementation of a CNN model for predicting fire spread and the code used to get a prediction and a severity score on a test fire image.
+To launch the training of the model, run the script with : python firespread_cnn.py --mode train .
+To visualize the data, run the script with : python firespread_cnn.py --mode data_visualisation .
+To get a prediction and a severity score on a test fire image, run the script with : python firespread_cnn.py --mode output .'''
 
 
 def normalize_feature(feature, feature_name):
@@ -204,7 +208,7 @@ def plot_samples_from_dataset(dataset: tf.data.Dataset, n_rows: int,save_path):
     BOUNDS = [-1, -0.1, 0.001, 1]
     NORM = colors.BoundaryNorm(BOUNDS, CMAP.N)
 
-    n_features = 12
+    n_features = 9
     
     # Loop through n samples of the dataset
     for i in range(n_rows):
@@ -316,7 +320,7 @@ if __name__ == "__main__":
         "--mode",
         type=str,
         default="train",
-        choices=["train", "samples", "eval","data_visualisation","test_without_model","output"],
+        choices=["train","data_visualisation","output"],
         help="what to do when running the script (default: %(default)s)",
     )
     parser.add_argument(
@@ -409,7 +413,7 @@ if __name__ == "__main__":
     INPUT_FEATURES = ['elevation', 'th', 'vs',  'tmmn', 'tmmx', 'sph', 
                   'pr', 'pdsi', 'NDVI', 'population', 'erc', 'PrevFireMask']
     OUTPUT_FEATURES = ['FireMask']
-    TITLES = ['Elevation','Wind\ndirection','Wind\nvelocity','Min\ntemp','Max\ntemp','Humidity','Precip','Drought','Vegetation','Population\ndensity','Energy\nrelease\ncomponent','Previous\nfire\nmask','Fire\nmask']
+    TITLES = ['Elevation','Wind\ndirection','Wind\nvelocity','Max\ntemp','Humidity','Precip','Vegetation','Population\ndensity','Previous\nfire\nmask','Fire\nmask']
 
     train_file = '../../data/training_dataset_firespread_model/next_day_wildfire_spread_train*'
     test_file = '../../data/training_dataset_firespread_model/next_day_wildfire_spread_test*'
@@ -475,19 +479,33 @@ if __name__ == "__main__":
             input_array[:, :, i] = (input_array[:, :, i] - np.mean(input_array[:, :, i])) / (np.std(input_array[:, :, i]) + 1e-6)
 
         input_array_batch = np.expand_dims(input_array, axis=0)  # (1, 64, 64, 9)
-
-        
         predictions = model.predict(input_array_batch)  # shape: (1, 64, 64, 1)
         binary_predictions = (predictions > 0.5).astype(np.uint8)
         output_image = binary_predictions[0]  # shape: (64, 64, 1)
         output_image_2d = output_image.squeeze()  # shape: (64, 64)
+        burned_area_pixels_output = np.sum(output_image_2d.squeeze())  # Count the number of pixels in fire
+
+        predictions = model.predict(test_dataset)  # shape: (1, 64, 64, 1)
+        fire_pixel_counts = []
+
+        for data_image in predictions:
+            binary_image = np.squeeze(data_image)  
+            burned_area_pixels = np.sum(binary_image)  # Count the number of pixels in fire
+            fire_pixel_counts.append(burned_area_pixels)
+
+        # Convert to numpy array for numerical operations
+        fire_pixel_counts.append(burned_area_pixels_output)
+        fire_pixel_counts = np.array(fire_pixel_counts)
+
+        # Use the rank for the normalisation to avoid effects of outliers.
+        ranks = rankdata(fire_pixel_counts, method='average')
+        severity_scores = 1 + 99 * (ranks - 1) / (len(ranks) - 1)
+        severity_scores = severity_scores.astype(int)
+        severity_score_output = severity_scores[-1] # Get the score of the output image
+        print("The severity score of the output image is:", severity_score_output)
 
         plt.imshow(output_image_2d, cmap='gray')
         plt.title("Prediction")
         plt.colorbar()
         plt.savefig("example/output_prediction.png")
         plt.show()
-
-
-
-
