@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/zosialenarczyk/wildfire-prevention/main/banner3.png" alt="Wildfire Prevention AI System Banner" width="100%">
+  <img src="https://raw.githubusercontent.com/zosialenarczyk/wildfire-prevention/main/data/raw/banner3.png" alt="Wildfire Prevention AI System Banner" width="100%">
 </p>
 
 ## Project Overview
