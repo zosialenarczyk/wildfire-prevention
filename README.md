@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/zosialenarczyk/wildfire-prevention/main/Banner3.png" alt="Wildfire Prevention AI System Banner" width="100%">
+  <img src="https://raw.githubusercontent.com/zosialenarczyk/wildfire-prevention/main/banner3.png" alt="Wildfire Prevention AI System Banner" width="100%">
 </p>
 
 ## Project Overview
@@ -47,6 +47,7 @@ Together, the models and agents deliver real-time, location-specific recommendat
 
 ## Project Structure
 
+```bash
 wildfire-prediction/
 ├── data/
 │   ├── raw/                         # Weather, fire, GADM, satellite data
