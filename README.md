@@ -31,12 +31,10 @@ A rule-based prioritization system that translates predicted fire probabilities 
 
 The models are embedded into a **multi-agent CrewAI architecture** that mimics a real-world emergency response workflow. Each agent focuses on a domain-specific task:
 
-- **Fire Prediction Agent** – Uses the XGBoost model to assess daily fire risk per region.
-- **Fire Spread Agent** – Predicts next-day spatial fire movement using the CNN model.
-- **Resource Planner Agent** – Translates risk and severity scores into optimal firefighting deployment strategies.
-- **Evacuation Coordinator Agent** – Prioritizes areas for evacuation based on risk and terrain conditions.
-- **Tourism Safety Advisor Agent** – Issues safety guidance for travelers in affected regions.
-- **Public Communication Manager Agent** – Aggregates agent outputs and issues structured public alerts.
+- **Resource  Agent** – Translates risk and severity scores into optimal firefighting deployment strategies.
+- **Evacuation Agent** – Prioritizes areas for evacuation based on risk and terrain conditions.
+- **Tourist Agent** – Issues safety guidance for travelers in affected regions.
+- **Public Communication Agent** – Aggregates agent outputs and issues structured public alerts.
 
 ---
 
