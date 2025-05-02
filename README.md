@@ -53,12 +53,18 @@ wildfire-prediction/
 │   ├── raw/                         # Weather, fire, GADM, satellite data
 │   ├── processed/                   # Cleaned datasets
 │   └── demos/                       # Video demos of agents and alerts
-│       ├── agents_communication.mp4
-│       ├── wildfire_demo.mp4
-│       └── safety_alert.mp4
+│   │   ├── agents_communication.mp4
+│   │   ├── wildfire_demo.mp4
+│   │   └── safety_alert.mp4
+    └── resources/
+        ├── gr/
+        │   ├── Dasikes_Pyrkagies_2013.xls              # Raw datasets in Greek
+        │   └── ...
+        │
+        └── Greece_wildfire_resources_2013_2024.csv     # Cleaned dataset
+        
 │
 ├── docs/                            # Reports and papers
-│   └── agents_description.docx
 │
 ├── models/                          # Trained model files
 │
@@ -69,10 +75,13 @@ wildfire-prediction/
 │   │   ├── DataMerging.ipynb
 │   │   ├── dynamic_weather_forecast.ipynb
 │   │   └── XGBoost_Predict_wildfire.ipynb
-│   └── firespread_modellisation/
-│       ├── firespread_cnn.py
-│       ├── collect_environment_parameters.py
-│       └── res/ ...
+│   ├── firespread_modellisation/
+│   │    ├── firespread_cnn.py
+│   │    ├── collect_environment_parameters.py
+│   │    └── res/ ...
+│   └── resources/
+│       ├── resource_data_preprocessing.py
+│       └── resources_modelling.py
 │
 ├── src/
 │   ├── api/
