@@ -56,13 +56,13 @@ wildfire-prediction/
 │   │   ├── agents_communication.mp4
 │   │   ├── wildfire_demo.mp4
 │   │   └── safety_alert.mp4
-    └── resources/
-        ├── gr/
-        │   ├── Dasikes_Pyrkagies_2013.xls              # Raw datasets in Greek
-        │   └── ...
-        │
-        └── Greece_wildfire_resources_2013_2024.csv     # Cleaned dataset
-        
+│   └── resources/
+│       ├── gr/
+│       │   ├── Dasikes_Pyrkagies_2013.xls              # Raw datasets in Greek
+│       │   └── ...
+│       │
+│       └── Greece_wildfire_resources_2013_2024.csv     # Cleaned dataset
+│        
 │
 ├── docs/                            # Reports and papers
 │
